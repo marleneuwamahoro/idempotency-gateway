@@ -1,16 +1,9 @@
-# app/routes.py
-# ------------------------------------------------------------------
-# This file defines all the API routes (URLs) for our application.
-# Routes are kept thin — they only handle HTTP stuff (reading headers,
-# reading body, returning responses).
-# The actual logic lives in payment_service.py.
-# ------------------------------------------------------------------
+
 
 from flask import Blueprint, request, jsonify
 
 from app.payment_service import process_payment
 
-# A Blueprint is like a mini-app. We register it in __init__.py.
 payment_bp = Blueprint("payment", __name__)
 
 

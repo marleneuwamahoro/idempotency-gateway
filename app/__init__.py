@@ -1,11 +1,3 @@
-# app/__init__.py
-# ------------------------------------------------------------------
-# This is the "factory" function that creates and configures
-# the Flask application.
-#
-# Using a factory function (create_app) is a best practice
-# because it makes the app easier to test.
-# ------------------------------------------------------------------
 
 from flask import Flask
 

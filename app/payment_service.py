@@ -1,9 +1,4 @@
-# app/payment_service.py
-# ------------------------------------------------------------------
-# Contains all the business logic for processing payments.
-# The route just calls functions from here.
-# This separation keeps our code clean and easy to test.
-# ------------------------------------------------------------------
+
 
 import hashlib
 import json
@@ -12,25 +7,12 @@ import threading
 
 from app.store import idempotency_store, processing_events, store_lock
 
-# Keep cached idempotent responses for a short window.
-# In production, this prevents unbounded memory growth and allows
-# safe re-use of the same key only for a limited time.
+
 IDEMPOTENCY_KEY_TTL = 900  # 15 minutes
 
 
 def hash_body(body: dict) -> str:
-    """
-    Creates a unique fingerprint (hash) of the request body.
-
-    Why? So we can detect if someone sends the SAME key
-    but with DIFFERENT data (e.g., changing amount from 100 to 500).
-
-    Example:
-        hash_body({"amount": 100, "currency": "GHS"})
-        --> "a3f5c2..." (some long string)
-    """
-    # Sort keys so {"amount":100,"currency":"GHS"} and
-    # {"currency":"GHS","amount":100} produce the SAME hash
+ 
     serialized = json.dumps(body, sort_keys=True)
     return hashlib.sha256(serialized.encode()).hexdigest()
 
