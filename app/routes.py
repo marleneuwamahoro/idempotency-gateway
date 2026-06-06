@@ -1,21 +1,13 @@
 
-
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, render_template
 
 from app.payment_service import process_payment
 
 payment_bp = Blueprint("payment", __name__)
 
-
 @payment_bp.route("/", methods=["GET"])
 def root():
-    """
-    Root endpoint returning a small welcome message and usage hint.
-    """
-    return jsonify({
-        "status": "ok",
-        "message": "Idempotency Gateway is running. Use POST /process-payment with Idempotency-Key."
-    }), 200
+    return render_template("index.html")
 
 
 @payment_bp.route("/health", methods=["GET"])

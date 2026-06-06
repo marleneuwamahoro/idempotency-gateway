@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Idempotency Gateway</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: sans-serif; background: #f4f6f9; color: #333; padding: 40px 20px; }
+    h1 { text-align: center; margin-bottom: 8px; color: #2d3748; }
+    p.subtitle { text-align: center; color: #718096; margin-bottom: 32px; }
+    .card { background: white; border-radius: 12px; padding: 28px; max-width: 600px; margin: 0 auto 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 14px; }
+    input { width: 100%; padding: 10px 14px; border: 1px solid #cbd5e0; border-radius: 8px; font-size: 14px; margin-bottom: 16px; }
+    button { width: 100%; padding: 12px; background: #4f46e5; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; }
+    button:hover { background: #4338ca; }
+    .response { margin-top: 20px; padding: 16px; border-radius: 8px; font-size: 13px; display: none; }
+    .success { background: #f0fff4; border: 1px solid #9ae6b4; }
+    .error { background: #fff5f5; border: 1px solid #feb2b2; }
+    .cache-hit { background: #ebf8ff; border: 1px solid #90cdf4; }
+    pre { white-space: pre-wrap; word-break: break-all; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+    .badge.success { background: #c6f6d5; color: #276749; }
+    .badge.error { background: #fed7d7; color: #9b2c2c; }
+    .badge.cache { background: #bee3f8; color: #2a69ac; }
+  </style>
+</head>
+<body>
+  <h1>💳 Idempotency Gateway</h1>
+  <p class="subtitle">Test the pay-once API directly from your browser</p>
+
+  <div class="card">
+    <label>Idempotency Key</label>
+    <input type="text" id="ikey" placeholder="e.g. order-001" />
+
+    <label>Amount</label>
+    <input type="number" id="amount" placeholder="e.g. 100" />
+
+    <label>Currency</label>
+    <input type="text" id="currency" placeholder="e.g. GHS" />
+
+    <button onclick="sendPayment()">Send Payment Request</button>
+
+    <div class="response" id="response-box">
+      <span class="badge" id="badge"></span>
+      <pre id="response-body"></pre>
+    </div>
+  </div>
+
+  <script>
+    async function sendPayment() {
+      const key = document.getElementById('ikey').value.trim();
+      const amount = parseFloat(document.getElementById('amount').value);
+      const currency = document.getElementById('currency').value.trim();
+      const box = document.getElementById('response-box');
+      const badge = document.getElementById('badge');
+      const body = document.getElementById('response-body');
+
+      box.style.display = 'none';
+
+      const res = await fetch('/process-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Idempotency-Key': key
+        },
+        body: JSON.stringify({ amount, currency })
+      });
+
+      const data = await res.json();
+      const cacheHit = res.headers.get('X-Cache-Hit');
+
+      box.className = 'response';
+      if (cacheHit === 'true') {
+        box.classList.add('cache-hit');
+        badge.className = 'badge cache';
+        badge.textContent = '⚡ Cache Hit — duplicate request detected';
+      } else if (res.ok) {
+        box.classList.add('success');
+        badge.className = 'badge success';
+        badge.textContent = '✅ ' + res.status + ' Success';
+      } else {
+        box.classList.add('error');
+        badge.className = 'badge error';
+        badge.textContent = '❌ ' + res.status + ' Error';
+      }
+
+      body.textContent = JSON.stringify(data, null, 2);
+      box.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
